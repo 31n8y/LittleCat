@@ -238,6 +238,10 @@ get_config_yaml() {
     local status_text="配置文件下载成功!"
     local error_text="配置文件下载失败,退出启动!"
 
+     if [ ! -d "$temp_dir" ]; then
+        mkdir -p $temp_dir
+    fi
+
     # 尝试使用curl进行下载
     curl -L -k -sS --retry 5 -m 10 -o $temp_dir/clash.yaml $CAT_URL
     if [ $? -ne 0 ]; then
@@ -316,6 +320,11 @@ service_start() {
     Show 2 '正在启动Clash服务...'
     startup_sucess="服务启动成功！"
     startup_failed="服务启动失败！"
+    
+    if [ ! -d "$logs_dir" ]; then
+        mkdir -p $logs_dir
+    fi
+
     if [[ $cpu_arch =~ "x86_64" || $cpu_arch =~ "amd64"  ]]; then
         nohup $cat_dir/bin/clash-linux-amd64 -d $conf_dir &> $logs_dir/clash.log &
         action $startup_sucess $startup_failed $?
