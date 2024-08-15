@@ -333,7 +333,6 @@ service_start() {
 # 添加环境变量(root权限)
 set_profile() {
     cat>/etc/profile.d/clash.sh<<EOF
-# 开启系统代理
 function cat_on() {
     export http_proxy=http://127.0.0.1:7890
     export https_proxy=http://127.0.0.1:7890
@@ -344,7 +343,6 @@ function cat_on() {
     echo -e "\033[32m[√] 已开启代理\033[0m"
 }
 
-# 关闭系统代理
 function cat_off() {
     unset http_proxy
     unset https_proxy
