@@ -118,6 +118,14 @@ conf_dir="$cat_dir/conf"
 temp_dir="$cat_dir/temp"
 logs_dir="$cat_dir/logs"
 
+if [ ! -d "$logs_dir" ]; then
+    mkdir -p $logs_dir
+fi
+
+if [ ! -d "$temp_dir" ]; then
+    mkdir -p $temp_dir
+fi
+
 # 自定义action函数，实现通用action功能
 action() {
     if [ $? -eq 0 ]; then
@@ -171,7 +179,7 @@ determine_cpu_arch() {
     if [[ -f "/etc/os-release" ]]; then
         . /etc/os-release
         case "$ID" in
-            ubuntu|debian|linuxmint)
+            kali|ubuntu|debian|linuxmint)
                 eval_cmds "dpkg-architecture -qDEB_HOST_ARCH_CPU" "dpkg-architecture -qDEB_BUILD_ARCH_CPU" "uname -m"
                 ;;
             centos|fedora|rhel)
@@ -237,10 +245,6 @@ get_config_yaml() {
     Show 2 '正在下载配置文件...'
     local status_text="配置文件下载成功!"
     local error_text="配置文件下载失败,退出启动!"
-
-     if [ ! -d "$temp_dir" ]; then
-        mkdir -p $temp_dir
-    fi
 
     # 尝试使用curl进行下载
     curl -L -k -sS --retry 5 -m 10 -o $temp_dir/clash.yaml $CAT_URL
@@ -321,10 +325,6 @@ service_start() {
     startup_sucess="服务启动成功！"
     startup_failed="服务启动失败！"
     
-    if [ ! -d "$logs_dir" ]; then
-        mkdir -p $logs_dir
-    fi
-
     if [[ $cpu_arch =~ "x86_64" || $cpu_arch =~ "amd64"  ]]; then
         nohup $cat_dir/bin/clash-linux-amd64 -d $conf_dir &> $logs_dir/clash.log &
         action $startup_sucess $startup_failed $?
