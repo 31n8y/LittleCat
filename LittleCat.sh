@@ -464,6 +464,7 @@ cat_env() {
     source_env
     Show 2 "当前配置文件信息"
     Show 2 "订阅URL地址: ${CAT_URL}"
+    Show 2 "仪表板地址: http://${CAT_IP}:9090/ui"
     Show 2 "仪表板密码: ${CAT_SECRET}"
     Show 2 "服务IP地址: ${CAT_IP}"
     Show 2 "HTTP代理地址: http://127.0.0.1:7890"
