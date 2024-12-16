@@ -107,6 +107,24 @@ commands=(
     ["重置小猫咪"]="cat_reset"
 )
 
+# 检查wget命令是否安装
+check_wget() {
+    if ! command -v wget &> /dev/null; then
+        Show 2 "wget 未安装，正在安装..."
+        sudo apt-get install wget -y &> /dev/null
+        action "wget 安装成功" "wget 安装失败"
+    fi
+}
+
+# 检查curl命令是否安装
+check_curl() {
+    if ! command -v curl &> /dev/null; then
+        Show 2 "curl 未安装，正在安装..."
+        sudo apt-get install curl -y &> /dev/null
+        action "curl 安装成功" "curl 安装失败"
+    fi
+}
+
 # 获取脚本工作目录绝对路径
 export cat_dir=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 
@@ -156,7 +174,7 @@ cat_config() {
         CAT_SECRET=$(openssl rand -hex 32)
     fi
     echo "CAT_SECRET=$CAT_SECRET" >> .env
-    
+
     # 配置小猫咪服务IP地址
     read -p "$(echo -e "${YELLOW}请输入小喵咪的服务IP地址: ${NC}")" CAT_IP
     echo "CAT_IP=$CAT_IP" >> .env
@@ -236,6 +254,7 @@ check_cat_url() {
 
     Show 2 "正在检测订阅地址..."
     # 使用curl检查URL是否返回HTTP状态码200-299
+    check_curl
     curl -o /dev/null -L -k -sS --retry 5 -m 10 --connect-timeout 10 -w "%{http_code}" "$CAT_URL" | grep -qE '^[23][0-9]{2}$' &>/dev/null
     action $status_text $error_text $?
 }
@@ -247,9 +266,11 @@ get_config_yaml() {
     local error_text="配置文件下载失败,退出启动!"
 
     # 尝试使用curl进行下载
+    check_curl
     curl -L -k -sS --retry 5 -m 10 -o $temp_dir/clash.yaml $CAT_URL
     if [ $? -ne 0 ]; then
         # 如果使用curl下载失败，尝试使用wget进行下载
+        check_wget
         for i in {1..10}
         do
             wget -q --no-check-certificate -O $temp_dir/clash.yaml $CAT_URL
@@ -304,7 +325,7 @@ subconverter() {
 
 # 对配置文件重新格式化及配置
 format_config_yaml() {
-    # 取出代理相关配置 
+    # 取出代理相关配置
     #sed -n '/^proxies:/,$p' $temp_dir/clash.yaml > $temp_dir/proxy.txt
     sed -n '/^proxies:/,$p' $temp_dir/clash_config.yaml > $temp_dir/proxy.txt
 
@@ -324,7 +345,7 @@ service_start() {
     Show 2 '正在启动Clash服务...'
     startup_sucess="服务启动成功！"
     startup_failed="服务启动失败！"
-    
+
     if [[ $cpu_arch =~ "x86_64" || $cpu_arch =~ "amd64"  ]]; then
         nohup $cat_dir/bin/clash-linux-amd64 -d $conf_dir &> $logs_dir/clash.log &
         action $startup_sucess $startup_failed $?
@@ -391,7 +412,7 @@ cat_start() {
         subconverter
         sleep 3
     fi
-    
+
     # 格式化配置文件
     format_config_yaml
 
@@ -507,7 +528,7 @@ show_menu() {
     *************  LittleCat  *************
 
     脚本作用: 养一只小猫咪，带我们去旅行
-    
+
                     --- Made by 31n8y ---
     '
     echo -e "${GREEN_LINE}"
